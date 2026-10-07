@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexis Mega Hub - Ultimate Roblox Script Store & Map Selector</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darker: '#090d16',
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                        accent: '#6366f1',
+                        accentHover: '#4f46e5'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="bg-darker text-gray-100 min-h-screen flex flex-col selection:bg-accent selection:text-white">
+
+    <header class="sticky top-0 z-40 backdrop-blur-md bg-dark/80 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="goHome()">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-code text-white text-lg"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-black bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">NEXIS MAP HUB</span>
+                    <span class="block text-xs text-gray-400 font-medium">รวมสคริปต์แยกตาม Map & รูปภาพจริง</span>
+                </div>
+            </div>
+
+            <!-- User Balance & Actions -->
+            <div class="flex items-center space-x-4">
+                <div class="bg-card/80 border border-gray-700/60 px-4 py-2 rounded-xl flex items-center space-x-3 shadow-inner">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                        <i class="fa-solid fa-wallet text-sm"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase font-semibold text-gray-400 tracking-wider">ยอดเงินจำลอง</div>
+                        <div class="text-sm font-bold text-emerald-400"><span id="userBalance">100</span> THB</div>
+                    </div>
+                </div>
+
+                <button onclick="openRedeemModal()" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-200 flex items-center space-x-2 text-sm">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span class="hidden sm:inline">เติมเงินโค้ด</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 text-center text-xs sm:text-sm text-amber-300 font-medium flex items-center justify-center space-x-2">
+        <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+        <span>เว็บไซต์นี้ไม่มีการใช้เงินจริงแต่อย่างใด เป็นเพียงสกุลเงินจำลองภายในเว็บไซต์เท่านั้นเพื่อความบันเทิง</span>
+    </div>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Breadcrumb & View Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card/40 border border-gray-800 p-6 rounded-2xl backdrop-blur-sm">
+            <div>
+                <div id="breadcrumbNav" class="text-xs text-indigo-400 font-semibold mb-1 flex items-center space-x-2">
+                    <span onclick="goHome()" class="cursor-pointer hover:underline">หน้าแรก (Maps List)</span>
+                </div>
+                <h1 id="viewTitle" class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">เลือกแมพ (Roblox Maps Directory)</h1>
+                <p id="viewSubtitle" class="text-gray-400 text-sm mt-1">เลือกแมพที่คุณต้องการเพื่อดูสคริปต์แยกตามประเภท (มีคีย์ / ไม่มีคีย์)</p>
+            </div>
+
+            <!-- Main Navigation Tabs -->
+            <div class="flex bg-darker p-1.5 rounded-xl border border-gray-800 self-start md:self-auto">
+                <button onclick="switchMainTab('maps')" id="tabMapsBtn" class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-accent text-white shadow-md">
+                    <i class="fa-solid fa-map mr-2"></i>คลังแมพทั้งหมด (<span id="totalMapCount">0</span>)
+                </button>
+                <button onclick="switchMainTab('executors')" id="tabExecutorsBtn" class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-microchip mr-2"></i>สถานะตัวรัน
+                </button>
+            </div>
+        </div>
+
+        <div id="mapsDirectorySection" class="space-y-6">
+            <!-- Search & Filter bar for Maps -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-1">หมวดหมู่เกม:</span>
+                    <button onclick="filterMapCategory('all')" id="mapCatBtn-all" class="map-cat-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition-all">ทั้งหมด</button>
+                    <button onclick="filterMapCategory('Sports')" id="mapCatBtn-sports" class="map-cat-btn px-4 py-2 rounded-xl text-xs font-semibold bg-dark border border-gray-800 text-gray-400 hover:text-white transition-all">กีฬา (Sports)</button>
+                    <button onclick="filterMapCategory('RPG')" id="mapCatBtn-rpg" class="map-cat-btn px-4 py-2 rounded-xl text-xs font-semibold bg-dark border border-gray-800 text-gray-400 hover:text-white transition-all">อาร์พีจี (RPG/Action)</button>
+                    <button onclick="filterMapCategory('Simulator')" id="mapCatBtn-sim" class="map-cat-btn px-4 py-2 rounded-xl text-xs font-semibold bg-dark border border-gray-800 text-gray-400 hover:text-white transition-all">จำลอง (Simulator)</button>
+                </div>
+
+                <div class="relative w-full sm:w-72">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <i class="fa-solid fa-search"></i>
+                    </span>
+                    <input type="text" id="mapSearchInput" oninput="renderMapsDirectory()" placeholder="ค้นหาชื่อแมพ..." class="w-full bg-card border border-gray-700/60 rounded-xl pl-10 pr-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-accent transition-colors">
+                </div>
+            </div>
+
+            <!-- Maps Grid Container -->
+            <div id="mapsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <div id="mapDetailSection" class="space-y-6 hidden">
+            <!-- Map Info Banner -->
+            <div id="mapBannerContainer" class="relative rounded-2xl overflow-hidden border border-gray-800 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 bg-cover bg-center">
+                <div class="absolute inset-0 bg-gradient-to-r from-darker via-darker/90 to-darker/40 backdrop-blur-sm"></div>
+                <div class="relative z-10 flex items-center space-x-4">
+                    <img id="detailMapImg" src="" alt="Map Image" class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-2xl border-2 border-indigo-500/40 shadow-xl" onerror="this.src='https://placehold.co/300x300/1e293b/6366f1?text=Map'">
+                    <div>
+                        <span id="detailMapCategory" class="text-xs font-bold px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase">Sports</span>
+                        <h2 id="detailMapTitle" class="text-2xl sm:text-3xl font-black text-white mt-2">ชื่อแมพ</h2>
+                        <p id="detailMapDesc" class="text-sm text-gray-300 mt-1 max-w-xl">คำอธิบายแมพ Roblox</p>
+                    </div>
+                </div>
+                <div class="relative z-10 flex flex-col sm:flex-row gap-3">
+                    <button onclick="goHome()" class="bg-dark/80 hover:bg-dark text-gray-300 hover:text-white px-5 py-3 rounded-xl text-sm font-semibold border border-gray-700 transition-all flex items-center space-x-2">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>กลับไปเลือกแมพอื่น</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Key vs No-Key Filter Tabs for this Map -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card/60 border border-gray-800 p-4 rounded-2xl">
+                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                    <button onclick="filterMapScriptType('all')" id="scriptTypeBtn-all" class="script-type-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition-all">สคริปต์ทั้งหมดในแมพนี้</button>
+                    <button onclick="filterMapScriptType('No Key')" id="scriptTypeBtn-nokey" class="script-type-btn px-4 py-2 rounded-xl text-xs font-semibold bg-dark border border-gray-800 text-gray-400 hover:text-white transition-all">✨ ไม่มีคีย์ (No Key)</button>
+                    <button onclick="filterMapScriptType('Key System')" id="scriptTypeBtn-key" class="script-type-btn px-4 py-2 rounded-xl text-xs font-semibold bg-dark border border-gray-800 text-gray-400 hover:text-white transition-all">🔑 ต้องใช้คีย์ (Key System)</button>
+                </div>
+                <div class="text-xs text-gray-400">
+                    แสดงผลสคริปต์สำหรับแมพนี้โดยเฉพาะ
+                </div>
+            </div>
+
+            <!-- Map Scripts Grid -->
+            <div id="mapScriptsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <div id="executorsSection" class="space-y-6 hidden">
+            <div class="bg-card/60 border border-gray-800 p-6 rounded-2xl">
+                <h2 class="text-xl font-bold text-white mb-2"><i class="fa-solid fa-shield-halved text-accent mr-2"></i>สถานะตัวรัน Roblox (Executor Status Zone)</h2>
+                <p class="text-sm text-gray-400">ตรวจสอบสถานะการทำงานของตัวรันยอดนิยมแบบเรียลไทม์ เพื่อความปลอดภัยในการรันสคริปต์ของคุณ</p>
+            </div>
+
+            <div id="executorsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-auto border-t border-gray-800/80 bg-dark/60 py-6 text-center text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>&copy; 2026 Nexis Map Hub Simulator. All simulated rights reserved. Built for Roblox gaming community simulation.</p>
+        </div>
+    </footer>
+
+    <div id="scriptModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm hidden">
+        <div class="bg-card border border-gray-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-6 relative animate-in fade-in zoom-in duration-200">
+            <button onclick="closeScriptModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div>
+                <div class="flex items-center space-x-2 mb-1">
+                    <span id="modalCategoryBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider"></span>
+                    <span id="modalSourceBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-dark border border-gray-700 text-gray-300"></span>
+                </div>
+                <h3 id="modalScriptName" class="text-xl font-bold text-white mt-2">ชื่อสคริปต์</h3>
+                <p id="modalScriptMap" class="text-sm text-gray-400 mt-0.5">แมพ: Roblox Map</p>
+            </div>
+
+            <div class="bg-darker/60 border border-gray-800 p-4 rounded-xl flex items-center justify-between">
+                <div>
+                    <div class="text-xs text-gray-400">ราคาปัจจุบัน</div>
+                    <div id="modalScriptPrice" class="text-lg font-extrabold text-emerald-400">0 THB</div>
+                </div>
+                <div id="modalUnlockStatus" class="text-right">
+                    <div class="text-xs text-gray-400">สถานะของคุณ</div>
+                    <div id="modalStatusText" class="text-sm font-bold text-gray-300">ยังไม่ได้ซื้อ</div>
+                </div>
+            </div>
+
+            <!-- Action Options -->
+            <div class="space-y-3" id="modalActionButtons">
+                <!-- Populated dynamically -->
+            </div>
+
+            <!-- Edit Price Section (Admin/Owner) -->
+            <div class="border-t border-gray-800 pt-4 mt-4">
+                <details class="group">
+                    <summary class="text-xs text-indigo-400 font-semibold cursor-pointer flex items-center justify-between select-none">
+                        <span><i class="fa-solid fa-user-gear mr-1.5"></i>โหมดแอดมิน: แก้ไขราคา (Edit Price)</span>
+                        <i class="fa-solid fa-chevron-down group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <div class="mt-3 flex space-x-2">
+                        <input type="number" id="newPriceInput" placeholder="ระบุราคาใหม่..." class="w-full bg-darker border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-accent">
+                        <button onclick="updateScriptPrice()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-xl text-sm transition-colors whitespace-nowrap">บันทึก</button>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
+
+    <div id="redeemModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm hidden">
+        <div class="bg-card border border-gray-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-6 relative animate-in fade-in zoom-in duration-200">
+            <button onclick="closeRedeemModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="text-center">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-3 text-xl">
+                    <i class="fa-solid fa-ticket"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white">เติมเงินด้วยโค้ด (Redeem Code)</h3>
+                <p class="text-xs text-gray-400 mt-1">กรอกโค้ดเพื่อรับเงินจำลองเข้าบัญชีของคุณทันที</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <input type="text" id="redeemInput" placeholder="ระบุโค้ดเติมเงิน..." class="w-full bg-darker border border-gray-700 rounded-xl px-4 py-3 text-sm text-white text-center tracking-wider uppercase focus:outline-none focus:border-accent font-bold">
+                </div>
+                <button onclick="submitRedeemCode()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-indigo-500/20 transition-all text-sm">
+                    ยืนยันการเติมเงิน
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <script>
+        // User Balance & Unlocked Scripts State
+        let userState = {
+            balance: 150,
+            unlockedScripts: []
+        };
+
+        // Database of Roblox Maps (รวมแมพต่างๆ พร้อมรูปภาพประกอบสวยงาม)
+        let mapsData = [
+            {
+                id: 'badminton',
+                name: 'Badminton Legends (แมพตีแบต)',
+                category: 'Sports',
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Badminton+Legends+Map',
+                description: 'แมพกีฬาตีแบตยอดฮิต ทัวร์นาเมนต์ แข่งขันตีลูกขนไก่ เก็บเลเวลและปลดล็อกไม้แบตเทพ'
+            },
+            {
+                id: 'bloxfruits',
+                name: 'Blox Fruits (แมพผลไม้ปีศาจ)',
+                category: 'RPG',
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Blox+Fruits+Map',
+                description: 'ผจญภัยในท้องทะเลกว้างใหญ่ ค้นหาผลไม้ปีศาจ ตีมอนสเตอร์ และอัปเกรดฮาคิ'
+            },
+            {
+                id: 'bladeball',
+                name: 'Blade Ball (แมพดาบปัดลูกบอล)',
+                category: 'Sports',
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Blade+Ball+Map',
+                description: 'เกมวัดรีเฟล็กซ์ ปัดลูกบอลพลังงานที่พุ่งเข้าใส่ด้วยความเร็วสูง ใครเหลือรอดคนสุดท้ายชนะ'
+            },
+            {
+                id: 'ps99',
+                name: 'Pet Simulator 99 (แมพฟาร์มสัตว์เลี้ยง)',
+                category: 'Simulator',
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Pet+Simulator+99+Map',
+                description: 'สะสมสัตว์เลี้ยงสุดน่ารัก ฟาร์มเหรียญ เปิดไข่ และสำรวจโลกแฟนตาซีใบยักษ์'
+            },
+            {
+                id: 'arsenal',
+                name: 'Arsenal (แมพปืน FPS อารีน่า)',
+                category: 'RPG',
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Arsenal+FPS+Map',
+                description: 'เกมยิงปืนสุดมันส์ เปลี่ยนปืนทุกครั้งที่ฆ่าศัตรูได้ รวดเร็วและเร้าใจ'
+            },
+            {
+                id: 'fisch',
+                name: 'Fisch (แมพตกปลา Open World)',
+                category: 'Simulator',
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Fisch+Fishing+Map',
+                description: 'ออกเรือตกปลาในเกาะลับ ค้นหาสัตว์น้ำหายาก อัปเกรดเบ็ด และสะสมคอลเลกชันปลา'
+            }
+        ];
+
+        // Database of Scripts (แยกตาม Map ID และมีประเภท Key System / No Key พร้อมรูปภาพสคริปต์)
+        let scriptsData = [
+            // --- BADMINTON LEGENDS SCRIPTS ---
+            {
+                id: 101,
+                mapId: 'badminton',
+                name: 'Badminton Legends Auto Smash & Hit Pro',
+                category: 'No Key',
+                source: 'ScriptBlox',
+                price: 15,
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Badminton+Auto+Smash',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/nexus-hub/badminton/main/autosmash.lua"))()'
+            },
+            {
+                id: 102,
+                mapId: 'badminton',
+                name: 'Badminton Legends Tournament God Hub',
+                category: 'Key System',
+                source: 'Rscripts.net',
+                price: 35,
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Badminton+God+Hub',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/nexus-hub/badminton/main/godhub.lua"))()'
+            },
+            {
+                id: 103,
+                mapId: 'badminton',
+                name: 'Badminton Fast Speed & Infinite Stamina',
+                category: 'No Key',
+                source: 'Nexus Premium',
+                price: 20,
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Badminton+Speed',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/nexus-hub/badminton/main/speed.lua"))()'
+            },
+
+            // --- BLOX FRUITS SCRIPTS ---
+            {
+                id: 201,
+                mapId: 'bloxfruits',
+                name: 'Blox Fruits Auto Farm Level & Sea Events V3',
+                category: 'Key System',
+                source: 'ScriptBlox',
+                price: 40,
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Blox+Fruits+Auto+Farm',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/nexus-hub/bloxfruits-v3/main/loader.lua"))()'
+            },
+            {
+                id: 202,
+                mapId: 'bloxfruits',
+                name: 'Blox Fruits Fruit Notifier & Snipe Hub',
+                category: 'No Key',
+                source: 'Rscripts.net',
+                price: 25,
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Blox+Fruits+Notifier',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/nexus-hub/bloxfruits-fruit/main/notifier.lua"))()'
+            },
+
+            // --- BLADE BALL SCRIPTS ---
+            {
+                id: 301,
+                mapId: 'bladeball',
+                name: 'Blade Ball Auto Parry & God Mode',
+                category: 'No Key',
+                source: 'ScriptBlox',
+                price: 20,
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Blade+Ball+Parry',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/nexus-hub/bladeball/main/pro.lua"))()'
+            },
+            {
+                id: 302,
+                mapId: 'bladeball',
+                name: 'Blade Ball Ability Spammer & ESP',
+                category: 'Key System',
+                source: 'V3rmillion Hub',
+                price: 30,
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Blade+Ball+ESP',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/nexus-hub/bladeball/main/esp.lua"))()'
+            },
+
+            // --- PET SIMULATOR 99 SCRIPTS ---
+            {
+                id: 401,
+                mapId: 'ps99',
+                name: 'Pet Simulator 99 Ultimate Macro & Chest Farm',
+                category: 'Key System',
+                source: 'ScriptBlox',
+                price: 50,
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=PS99+Macro',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/nexus-hub/ps99/main/main.lua"))()'
+            },
+            {
+                id: 402,
+                mapId: 'ps99',
+                name: 'Pet Simulator 99 Auto Hatch & Rank Up',
+                category: 'No Key',
+                source: 'Rscripts.net',
+                price: 25,
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=PS99+Hatch',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/nexus-hub/ps99/main/hatch.lua"))()'
+            },
+
+            // --- ARSENAL SCRIPTS ---
+            {
+                id: 501,
+                mapId: 'arsenal',
+                name: 'Arsenal Silent Aimbot & Custom ESP Glow',
+                category: 'Key System',
+                source: 'ScriptBlox',
+                price: 35,
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Arsenal+Aimbot',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/nexus-hub/arsenal/main/combat.lua"))()'
+            },
+
+            // --- FISCH SCRIPTS ---
+            {
+                id: 601,
+                mapId: 'fisch',
+                name: 'Fisch Auto Fish & Perfect Catch Pro',
+                category: 'No Key',
+                source: 'ScriptBlox',
+                price: 25,
+                image: 'https://placehold.co/600x350/1e293b/6366f1?text=Fisch+Auto+Fish',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/nexus-hub/fisch/main/autofish.lua"))()'
+            }
+        ];
+
+        // Executors Status Data
+        let executorsData = [
+            { name: "Delta Executor", platform: "Android / Windows", status: "normal", note: "อัปเดตล่าสุด รองรับแพทช์ใหม่" },
+            { name: "Fluxus", platform: "Android / PC", status: "updating", note: "กำลังแก้ไขบั๊กและปรับปรุงความเสถียร" },
+            { name: "Hydrogen", platform: "iOS / Mac / Android", status: "normal", note: "ใช้งานได้ปกติ ลื่นไหล" },
+            { name: "Codex", platform: "Android / iOS", status: "normal", note: "ระบบคีย์ทำงานได้ดีเยี่ยม" },
+            { name: "Wave Executor", platform: "Windows (PC)", status: "down", note: "ปิดปรับปรุงชั่วคราวจากระบบตรวจจับ Roblox" },
+            { name: "Solara", platform: "Windows (PC)", status: "normal", note: "ตัวรันฟรีแบบ Non-Bytecode เสถียรสูง" }
+        ];
+
+        // Current UI Navigation State
+        let currentMainTab = 'maps'; // 'maps' or 'executors'
+        let currentMapCategory = 'all';
+        let currentSelectedMapId = null;
+        let currentScriptTypeFilter = 'all'; // 'all', 'No Key', 'Key System'
+        let selectedScriptId = null;
+
+        // Initialize App on Load
+        window.onload = function() {
+            document.getElementById('totalMapCount').innerText = mapsData.length;
+            renderMapsDirectory();
+            renderExecutors();
+            updateBalanceDisplay();
+        };
+
+        // Switch Main Tabs (Maps Directory vs Executors)
+        function switchMainTab(tab) {
+            currentMainTab = tab;
+            const mapsSec = document.getElementById('mapsDirectorySection');
+            const mapDetailSec = document.getElementById('mapDetailSection');
+            const executorsSec = document.getElementById('executorsSection');
+            const tabMapsBtn = document.getElementById('tabMapsBtn');
+            const tabExecutorsBtn = document.getElementById('tabExecutorsBtn');
+
+            if (tab === 'maps') {
+                executorsSec.classList.add('hidden');
+                if (currentSelectedMapId) {
+                    mapDetailSec.classList.remove('hidden');
+                    mapsSec.classList.add('hidden');
+                } else {
+                    mapsSec.classList.remove('hidden');
+                    mapDetailSec.classList.add('hidden');
+                }
+                tabMapsBtn.className = "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-accent text-white shadow-md";
+                tabExecutorsBtn.className = "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-gray-400 hover:text-white";
+            } else {
+                mapsSec.classList.add('hidden');
+                mapDetailSec.classList.add('hidden');
+                executorsSec.classList.remove('hidden');
+                tabExecutorsBtn.className = "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 bg-accent text-white shadow-md";
+                tabMapsBtn.className = "px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 text-gray-400 hover:text-white";
+            }
+        }
+
+        // Return to Home (Maps Directory)
+        function goHome() {
+            currentSelectedMapId = null;
+            document.getElementById('mapDetailSection').classList.add('hidden');
+            document.getElementById('mapsDirectorySection').classList.remove('hidden');
+            document.getElementById('breadcrumbNav').innerHTML = `<span onclick="goHome()" class="cursor-pointer hover:underline">หน้าแรก (Maps List)</span>`;
+            document.getElementById('viewTitle').innerText = "เลือกแมพ (Roblox Maps Directory)";
+            document.getElementById('viewSubtitle').innerText = "เลือกแมพที่คุณต้องการเพื่อดูสคริปต์แยกตามประเภท (มีคีย์ / ไม่มีคีย์)";
+            switchMainTab('maps');
+        }
+
+        // Filter Maps Directory by Category
+        function filterMapCategory(category) {
+            currentMapCategory = category;
+            const buttons = document.querySelectorAll('.map-cat-btn');
+            buttons.forEach(btn => {
+                btn.className = "map-cat-btn px-4 py-2 rounded-xl text-xs font-semibold bg-dark border border-gray-800 text-gray-400 hover:text-white transition-all";
+            });
+
+            if (category === 'all') document.getElementById('mapCatBtn-all').className = "map-cat-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition-all";
+            if (category === 'Sports') document.getElementById('mapCatBtn-sports').className = "map-cat-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition-all";
+            if (category === 'RPG') document.getElementById('mapCatBtn-rpg').className = "map-cat-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition-all";
+            if (category === 'Simulator') document.getElementById('mapCatBtn-sim').className = "map-cat-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition-all";
+
+            renderMapsDirectory();
+        }
+
+        // Render Maps Directory Grid
+        function renderMapsDirectory() {
+            const grid = document.getElementById('mapsGrid');
+            const searchQuery = document.getElementById('mapSearchInput').value.toLowerCase();
+            grid.innerHTML = '';
+
+            const filteredMaps = mapsData.filter(m => {
+                const matchesCat = (currentMapCategory === 'all' || m.category === currentMapCategory);
+                const matchesSearch = m.name.toLowerCase().includes(searchQuery) || m.description.toLowerCase().includes(searchQuery);
+                return matchesCat && matchesSearch;
+            });
+
+            if (filteredMaps.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-gray-500">
+                        <i class="fa-solid fa-map text-4xl mb-3"></i>
+                        <p class="text-base font-medium">ไม่พบแมพที่คุณค้นหา</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredMaps.forEach(map => {
+                const scriptCount = scriptsData.filter(s => s.mapId === map.id).length;
+                const card = document.createElement('div');
+                card.className = "bg-card border border-gray-800/80 rounded-2xl overflow-hidden hover:border-indigo-500/50 transition-all duration-300 flex flex-col group shadow-xl cursor-pointer";
+                card.onclick = () => selectMap(map.id);
+                card.innerHTML = `
+                    <div class="relative overflow-hidden aspect-video bg-darker">
+                        <img src="${map.image}" alt="${map.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/600x350/1e293b/6366f1?text=Roblox+Map'">
+                        <div class="absolute top-3 left-3">
+                            <span class="text-[11px] font-bold px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 backdrop-blur-md uppercase">
+                                ${map.category}
+                            </span>
+                        </div>
+                        <div class="absolute top-3 right-3">
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-dark/90 border border-gray-700 text-emerald-400 backdrop-blur-md">
+                                ${scriptCount} สคริปต์
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-5 flex flex-col flex-grow justify-between space-y-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors">${map.name}</h3>
+                            <p class="text-xs text-gray-400 mt-1 line-clamp-2">${map.description}</p>
+                        </div>
+                        <div class="pt-3 border-t border-gray-800/80 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-indigo-400 flex items-center">
+                                <i class="fa-solid fa-folder-open mr-1.5"></i> เข้าสู่คลังสคริปต์แมพนี้
+                            </span>
+                            <i class="fa-solid fa-chevron-right text-xs text-gray-500 group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Select a Specific Map & Show its Scripts
+        function selectMap(mapId) {
+            const map = mapsData.find(m => m.id === mapId);
+            if (!map) return;
+
+            currentSelectedMapId = mapId;
+            currentScriptTypeFilter = 'all';
+
+            // Update Breadcrumb & Header
+            document.getElementById('breadcrumbNav').innerHTML = `
+                <span onclick="goHome()" class="cursor-pointer hover:underline text-indigo-400">หน้าแรก</span>
+                <i class="fa-solid fa-chevron-right text-[10px] mx-2 text-gray-500"></i>
+                <span class="text-gray-200">${map.name}</span>
+            `;
+            document.getElementById('viewTitle').innerText = map.name;
+            document.getElementById('viewSubtitle').innerText = "เลือกสคริปต์สำหรับแมพนี้ (กรองตามความต้องการ: มีคีย์ หรือ ไม่มีคีย์)";
+
+            // Update Map Detail Section Banner
+            document.getElementById('detailMapCategory').innerText = map.category;
+            document.getElementById('detailMapTitle').innerText = map.name;
+            document.getElementById('detailMapDesc').innerText = map.description;
+            document.getElementById('detailMapImg').src = map.image;
+            document.getElementById('mapBannerContainer').style.backgroundImage = `url('${map.image}')`;
+
+            // Switch views
+            document.getElementById('mapsDirectorySection').classList.add('hidden');
+            document.getElementById('mapDetailSection').classList.remove('hidden');
+
+            renderMapScripts();
+        }
+
+        // Filter Map Scripts by Type (all, No Key, Key System)
+        function filterMapScriptType(type) {
+            currentScriptTypeFilter = type;
+            const buttons = document.querySelectorAll('.script-type-btn');
+            buttons.forEach(btn => {
+                btn.className = "script-type-btn px-4 py-2 rounded-xl text-xs font-semibold bg-dark border border-gray-800 text-gray-400 hover:text-white transition-all";
+            });
+
+            if (type === 'all') document.getElementById('scriptTypeBtn-all').className = "script-type-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition-all";
+            if (type === 'No Key') document.getElementById('scriptTypeBtn-nokey').className = "script-type-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition-all";
+            if (type === 'Key System') document.getElementById('scriptTypeBtn-key').className = "script-type-btn px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition-all";
+
+            renderMapScripts();
+        }
+
+        // Render Scripts inside the Selected Map
+        function renderMapScripts() {
+            const grid = document.getElementById('mapScriptsGrid');
+            grid.innerHTML = '';
+
+            const filteredScripts = scriptsData.filter(script => {
+                const matchesMap = script.mapId === currentSelectedMapId;
+                const matchesType = (currentScriptTypeFilter === 'all' || script.category === currentScriptTypeFilter);
+                return matchesMap && matchesType;
+            });
+
+            if (filteredScripts.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-gray-500">
+                        <i class="fa-solid fa-code text-4xl mb-3"></i>
+                        <p class="text-base font-medium">ไม่พบสคริปต์ในเงื่อนไขนี้สำหรับแมพดังกล่าว</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredScripts.forEach(script => {
+                const isUnlocked = userState.unlockedScripts.includes(script.id);
+                const badgeColor = script.category === 'Key System' 
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' 
+                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+
+                const card = document.createElement('div');
+                card.className = "bg-card border border-gray-800/80 rounded-2xl overflow-hidden hover:border-gray-700 transition-all duration-200 flex flex-col group shadow-lg";
+                card.innerHTML = `
+                    <div class="relative overflow-hidden aspect-video bg-darker">
+                        <img src="${script.image}" alt="${script.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/600x350/1e293b/6366f1?text=Roblox+Script'">
+                        <div class="absolute top-3 left-3">
+                            <span class="text-[11px] font-bold px-3 py-1 rounded-full border backdrop-blur-md ${badgeColor}">
+                                ${script.category === 'Key System' ? '🔑 มีคีย์ (Key)' : '✨ ไม่มีคีย์ (No Key)'}
+                            </span>
+                        </div>
+                        <div class="absolute top-3 right-3">
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-dark/80 border border-gray-700 text-emerald-400 backdrop-blur-md">
+                                ${script.price} THB
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+                        <div>
+                            <div class="text-[11px] text-indigo-400 font-semibold mb-1"><i class="fa-solid fa-globe mr-1"></i> แหล่งที่มา: ${script.source}</div>
+                            <h3 class="text-base font-bold text-white line-clamp-2">${script.name}</h3>
+                        </div>
+                        <div class="pt-3 border-t border-gray-800/80 flex items-center justify-between">
+                            <span class="text-xs font-medium ${isUnlocked ? 'text-emerald-400 font-bold' : 'text-gray-400'}">
+                                ${isUnlocked ? '<i class="fa-solid fa-circle-check mr-1"></i> ปลดล็อกแล้ว' : '<i class="fa-solid fa-lock mr-1"></i> ยังไม่ซื้อ'}
+                            </span>
+                            <button onclick="openScriptModal(${script.id})" class="bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all border border-indigo-500/30">
+                                จัดการ / ซื้อ
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Render Executors Status Grid
+        function renderExecutors() {
+            const grid = document.getElementById('executorsGrid');
+            grid.innerHTML = '';
+
+            executorsData.forEach(exec => {
+                let statusBadge = '';
+                if (exec.status === 'normal') {
+                    statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>🟢 ใช้งานได้ปกติ</span>`;
+                } else if (exec.status === 'updating') {
+                    statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30"><span class="w-2 h-2 rounded-full bg-amber-400 mr-1.5"></span>🟡 กำลังพัฒนา / อัปเดต</span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-400 border border-rose-500/30"><span class="w-2 h-2 rounded-full bg-rose-400 mr-1.5"></span>🔴 ปิดให้บริการ</span>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-card border border-gray-800 p-6 rounded-2xl flex flex-col justify-between space-y-4 shadow-md";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-bold text-white">${exec.name}</h3>
+                            <i class="fa-solid fa-terminal text-gray-500 text-lg"></i>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-3"><i class="fa-solid fa-laptop-code mr-1"></i> แพลตฟอร์ม: ${exec.platform}</p>
+                        <div class="text-xs text-gray-300 bg-darker/60 p-3 rounded-xl border border-gray-800/80">
+                            ${exec.note}
+                        </div>
+                    </div>
+                    <div class="pt-2 border-t border-gray-800/80 flex items-center justify-between">
+                        <span class="text-xs text-gray-400">สถานะระบบ</span>
+                        ${statusBadge}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Update Balance UI
+        function updateBalanceDisplay() {
+            document.getElementById('userBalance').innerText = userState.balance.toLocaleString();
+        }
+
+        // Script Modal Operations
+        function openScriptModal(scriptId) {
+            selectedScriptId = scriptId;
+            const script = scriptsData.find(s => s.id === scriptId);
+            if (!script) return;
+
+            const map = mapsData.find(m => m.id === script.mapId);
+
+            document.getElementById('modalScriptName').innerText = script.name;
+            document.getElementById('modalScriptMap').innerText = "แมพ: " + (map ? map.name : 'Unknown');
+            document.getElementById('modalScriptPrice').innerText = script.price + " THB";
+            
+            const categoryBadge = document.getElementById('modalCategoryBadge');
+            categoryBadge.innerText = script.category === 'Key System' ? '🔑 มีคีย์' : '✨ ไม่มีคีย์';
+            categoryBadge.className = script.category === 'Key System' 
+                ? 'text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase'
+                : 'text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase';
+
+            const sourceBadge = document.getElementById('modalSourceBadge');
+            sourceBadge.innerText = "แหล่งที่มา: " + script.source;
+
+            const isUnlocked = userState.unlockedScripts.includes(script.id);
+            const statusText = document.getElementById('modalStatusText');
+            const actionButtons = document.getElementById('modalActionButtons');
+
+            if (isUnlocked) {
+                statusText.innerText = "ปลดล็อกแล้ว";
+                statusText.className = "text-sm font-bold text-emerald-400";
+                actionButtons.innerHTML = `
+                    <div class="space-y-2">
+                        <label class="text-xs text-gray-400 font-medium">สคริปต์โหลด (Loadstring):</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" readonly id="scriptCodeBox" value='${script.code}' class="w-full bg-darker border border-gray-700 rounded-xl px-3 py-2 text-xs text-indigo-300 font-mono focus:outline-none">
+                            <button onclick="copyScriptCode()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-xl text-xs transition-colors whitespace-nowrap">
+                                <i class="fa-solid fa-copy mr-1"></i> คัดลอก
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                statusText.innerText = "ยังไม่ได้ซื้อ";
+                statusText.className = "text-sm font-bold text-gray-400";
+                actionButtons.innerHTML = `
+                    <button onclick="buyScript(${script.id})" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all text-sm flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span>ซื้อสคริปต์นี้ (${script.price} THB)</span>
+                    </button>
+                `;
+            }
+
+            document.getElementById('newPriceInput').value = script.price;
+            document.getElementById('scriptModal').classList.remove('hidden');
+        }
+
+        function closeScriptModal() {
+            document.getElementById('scriptModal').classList.add('hidden');
+            selectedScriptId = null;
+        }
+
+        // Buy Script Logic
+        function buyScript(scriptId) {
+            const script = scriptsData.find(s => s.id === scriptId);
+            if (!script) return;
+
+            if (userState.balance < script.price) {
+                showToast("ยอดเงินจำลองของคุณไม่เพียงพอ กรุณาเติมเงิน!", "error");
+                return;
+            }
+
+            userState.balance -= script.price;
+            userState.unlockedScripts.push(scriptId);
+
+            updateBalanceDisplay();
+            renderMapScripts();
+            openScriptModal(scriptId);
+            showToast(`ซื้อสคริปต์ "${script.name}" สำเร็จ!`, "success");
+        }
+
+        // Copy Script Code (iFrame safe)
+        function copyScriptCode() {
+            const codeInput = document.getElementById('scriptCodeBox');
+            codeInput.select();
+            codeInput.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                showToast("คัดลอก Loadstring สำเร็จ!", "success");
+            } catch (err) {
+                showToast("ไม่สามารถคัดลอกได้", "error");
+            }
+        }
+
+        // Admin/Owner: Update Script Price
+        function updateScriptPrice() {
+            if (selectedScriptId === null) return;
+            const newPrice = parseInt(document.getElementById('newPriceInput').value);
+            
+            if (isNaN(newPrice) || newPrice < 0) {
+                showToast("กรุณาระบุราคาให้ถูกต้อง", "error");
+                return;
+            }
+
+            const script = scriptsData.find(s => s.id === selectedScriptId);
+            if (script) {
+                script.price = newPrice;
+                renderMapScripts();
+                openScriptModal(selectedScriptId);
+                showToast(`อัปเดตราคาของ "${script.name}" เป็น ${newPrice} THB สำเร็จ`, "success");
+            }
+        }
+
+        // Redeem Code Modal Controls
+        function openRedeemModal() {
+            document.getElementById('redeemInput').value = '';
+            document.getElementById('redeemModal').classList.remove('hidden');
+        }
+
+        function closeRedeemModal() {
+            document.getElementById('redeemModal').classList.add('hidden');
+        }
+
+        // Redeem Code Submission Logic
+        function submitRedeemCode() {
+            const codeInput = document.getElementById('redeemInput').value.trim();
+            const tier1Codes = ["PISIT HUB", "Night Hub", "FREE hub", "Hjop hub", "Mko hub"];
+            const tier2Codes = ["BlazeHub"];
+
+            const matchedT1 = tier1Codes.find(c => c.toLowerCase() === codeInput.toLowerCase());
+            const matchedT2 = tier2Codes.find(c => c.toLowerCase() === codeInput.toLowerCase());
+
+            if (matchedT2) {
+                userState.balance += 200;
+                updateBalanceDisplay();
+                closeRedeemModal();
+                showToast("เติมเงินสำเร็จ! คุณได้รับเงินจำลอง 200 THB จากโค้ดพิเศษ", "success");
+            } else if (matchedT1) {
+                userState.balance += 50;
+                updateBalanceDisplay();
+                closeRedeemModal();
+                showToast("เติมเงินสำเร็จ! คุณได้รับเงินจำลอง 50 THB", "success");
+            } else {
+                showToast("โค้ดเติมเงินไม่ถูกต้องหรือหมดอายุแล้ว", "error");
+            }
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const bgColor = type === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white';
+            const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+
+            toast.className = `pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl shadow-xl font-medium text-sm transition-all duration-300 animate-in fade-in slide-in-from-bottom-3 ${bgColor}`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
